@@ -1,21 +1,77 @@
 // english-irregular-verbs/app.js
 
-// korzystamy z danych z verbs-en-irregular.js:
-const verbs = window.irregularVerbsEn;
+// ======================
+// USTAWIENIA GŁOSU / TTS
+// ======================
 
-let currentVerb = null;
-let remainingPool = [...verbs];
+// Cache na głosy
+let britishVoice = null;
+let polishVoice = null;
 
-function speak(text, lang = "en-US") {
+// Ładowanie głosów, gdy tylko będą dostępne
+window.speechSynthesis.onvoiceschanged = () => {
+  const voices = window.speechSynthesis.getVoices();
+
+  // Brytyjski angielski – preferowany
+  britishVoice =
+    voices.find(v => v.lang === "en-GB") ||
+    voices.find(v => v.lang.startsWith("en"));
+
+  // Polski – preferowany
+  polishVoice =
+    voices.find(v => v.lang === "pl-PL") ||
+    voices.find(v => v.lang.startsWith("pl"));
+};
+
+// Główna funkcja mówienia
+function speak(text, lang) {
   if (!("speechSynthesis" in window)) {
-    alert("Twoja przeglądarka nie obsługuje mowy (speechSynthesis). Spróbuj w Chrome lub Edge.");
+    alert("Twoja przeglądarka nie obsługuje mowy (speechSynthesis).");
     return;
   }
+
+  // Automatyczne wykrycie języka, jeśli nie podano
+  if (!lang) {
+    // Jeśli są polskie znaki – traktuj jako polski
+    if (/[ąćęłńóśźż]/i.test(text)) {
+      lang = "pl-PL";
+    } else {
+      lang = "en-GB";
+    }
+  }
+
   window.speechSynthesis.cancel();
+
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = lang;
+
+  // Wybór głosu
+  if (lang.startsWith("en") && britishVoice) {
+    utter.voice = britishVoice;
+  }
+  if (lang.startsWith("pl") && polishVoice) {
+    utter.voice = polishVoice;
+  }
+
+  // Styl mówienia – wolniej, jak nauczyciel
+  utter.rate = 0.8;   // 1.0 = normalnie, 0.8 = trochę wolniej
+  utter.pitch = 1.0;  // wysokość głosu
+  utter.volume = 1.0; // głośność
+
   window.speechSynthesis.speak(utter);
 }
+
+// ======================
+// LOGIKA GRY
+// ======================
+
+// Dane czasowników są w osobnym pliku verbs-en-irregular.js
+// i dodają tablicę window.irregularVerbsEn
+const verbs = window.irregularVerbsEn || [];
+
+let currentVerb = null;
+// Pula: tylko czasowniki, których jeszcze NIE oznaczyliśmy jako „umiem”
+let remainingPool = [...verbs];
 
 function updateStats() {
   const remaining = remainingPool.length;
@@ -28,6 +84,10 @@ function updateStats() {
 }
 
 function pickRandomVerb() {
+  if (!verbs.length) {
+    console.warn("Brak danych czasowników (verbs). Upewnij się, że verbs-en-irregular.js jest poprawnie załadowany.");
+  }
+
   if (remainingPool.length === 0) {
     currentVerb = null;
     document.getElementById("baseForm").textContent = "Koniec puli 🎉";
@@ -45,7 +105,8 @@ function pickRandomVerb() {
     currentVerb.phon ? `Wymowa: ${currentVerb.phon}` : "";
   document.getElementById("answerBox").style.display = "none";
 
-  speak(currentVerb.base, "en-US");
+  // Pytanie – czytamy formę podstawową po angielsku (brytyjski)
+  speak(currentVerb.base, "en-GB");
   updateStats();
 }
 
@@ -60,28 +121,34 @@ function showAnswer() {
   document.getElementById("polishRow").style.display = showPL ? "block" : "none";
   document.getElementById("answerBox").style.display = "block";
 
-  speak(`${currentVerb.base}, ${currentVerb.past}, ${currentVerb.pp}`, "en-US");
+  // Odpowiedź – czytamy trzy formy po angielsku
+  speak(`${currentVerb.base}, ${currentVerb.past}, ${currentVerb.pp}`, "en-GB");
 }
 
 function repeatQuestion() {
-  if (currentVerb) speak(currentVerb.base, "en-US");
+  if (currentVerb) {
+    speak(currentVerb.base, "en-GB");
+  }
 }
 
 function repeatAnswer() {
-  if (currentVerb) speak(`${currentVerb.base}, ${currentVerb.past}, ${currentVerb.pp}`, "en-US");
+  if (currentVerb) {
+    speak(`${currentVerb.base}, ${currentVerb.past}, ${currentVerb.pp}`, "en-GB");
+  }
 }
 
 function markKnown() {
   if (!currentVerb) return;
   const idx = remainingPool.indexOf(currentVerb);
   if (idx !== -1) {
-    remainingPool.splice(idx, 1);
+    remainingPool.splice(idx, 1); // usuwamy z puli tylko jeśli „umiem”
   }
   pickRandomVerb();
 }
 
 function markUnknown() {
   if (!currentVerb) return;
+  // Nic nie usuwamy – dalej zostaje w puli
   pickRandomVerb();
 }
 
@@ -91,7 +158,7 @@ function resetPool() {
   pickRandomVerb();
 }
 
-// Start gry i eventy
+// Podpinamy eventy PO załadowaniu DOM
 window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("showAnswerBtn").addEventListener("click", showAnswer);
   document.getElementById("repeatQuestionBtn").addEventListener("click", repeatQuestion);
@@ -105,5 +172,9 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("polishRow").style.display = showPL ? "block" : "none";
   });
 
+  // Startujemy od losowego czasownika
   pickRandomVerb();
 });
+// ======================
+// KONIEC PLIKU app.js
+// ======================   
