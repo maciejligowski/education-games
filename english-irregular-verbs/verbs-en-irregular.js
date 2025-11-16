@@ -1,0 +1,23 @@
+window.irregularVerbsEn = [
+  { base: "be",      past: "was / were", pp: "been",   pl: "być",              phon: "bi, łoz / łer, bin" },
+  { base: "beat",    past: "beat",       pp: "beaten", pl: "bić, pokonywać",   phon: "bit, bit, bitn" },
+  { base: "become",  past: "became",     pp: "become", pl: "stawać się",       phon: "bikam, bikejm, bikam" },
+  { base: "begin",   past: "began",      pp: "begun",  pl: "zaczynać",         phon: "bigin, bigan, bigan" },
+  { base: "bite",    past: "bit",        pp: "bitten", pl: "gryźć",            phon: "bajt, byt, bytn" },
+  { base: "blow",    past: "blew",       pp: "blown",  pl: "dmuchać, wiać",    phon: "bloł, blu, blołn" },
+  { base: "break",   past: "broke",      pp: "broken", pl: "łamać",            phon: "brejk, brołk, brołkyn" },
+  { base: "bring",   past: "brought",    pp: "brought",pl: "przynosić",        phon: "bryng, brot, brot" },
+  { base: "broadcast", past: "broadcast", pp: "broadcast", pl: "nadawać",     phon: "brodkast" },
+  { base: "build",   past: "built",      pp: "built",  pl: "budować",          phon: "bild, bilt, bilt" },
+  { base: "burn",    past: "burnt",      pp: "burnt",  pl: "palić się",        phon: "bern, bernt, bernt" },
+  { base: "buy",     past: "bought",     pp: "bought", pl: "kupować",          phon: "baj, bot, bot" },
+  { base: "can",     past: "could",      pp: "–",      pl: "móc, potrafić",    phon: "ken, kud" },
+  { base: "catch",   past: "caught",     pp: "caught", pl: "łapać",            phon: "kecz, kot, kot" },
+  { base: "choose",  past: "chose",      pp: "chosen", pl: "wybierać",         phon: "czuz, czołz, czołzyn" },
+  { base: "come",    past: "came",       pp: "come",   pl: "przychodzić",      phon: "kam, kejm, kam" },
+  { base: "cost",    past: "cost",       pp: "cost",   pl: "kosztować",        phon: "kost" },
+  { base: "cut",     past: "cut",        pp: "cut",    pl: "ciąć",             phon: "kat" },
+  { base: "deal",    past: "dealt",      pp: "dealt",  pl: "radzić sobie",     phon: "di:l, delt, delt" },
+  { base: "do",      past: "did",        pp: "done",   pl: "robić",            phon: "du, dyd, dan" },
+  { base: "draw",    past: "drew",       pp: "drawn",  pl: "rysować",          phon: "dro, dru, drołn" }
+];
