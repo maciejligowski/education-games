@@ -131,8 +131,9 @@ function showAnswer() {
   document.getElementById("pastParticiple").textContent = currentVerb.pp;
   document.getElementById("polish").textContent = currentVerb.pl;
 
-  // Always hide Polish row in answer since we show English forms
-  document.getElementById("polishRow").style.display = "none";
+  // Show Polish meaning in answer only when toggle is unchecked (English question mode)
+  const showPolishQuestion = document.getElementById("togglePolish").checked;
+  document.getElementById("polishRow").style.display = showPolishQuestion ? "none" : "block";
   document.getElementById("phonetic").style.display = "block";
   document.getElementById("answerBox").style.display = "block";
 
