@@ -1,62 +1,212 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Education Games</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Czasowniki nieregularne – quiz z dźwiękiem</title>
   <style>
     body {
-      font-family: system-ui, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #f5f5f5;
       margin: 0;
-      padding: 40px 20px;
+      padding: 0;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
+      min-height: 100vh;
+    }
+
+    .app {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 24px 28px;
+      max-width: 500px;
+      width: 100%;
     }
 
     h1 {
-      margin-bottom: 30px;
+      font-size: 1.4rem;
+      margin-top: 0;
+      margin-bottom: 8px;
       text-align: center;
+    }
+
+    p.subtitle {
+      margin-top: 0;
+      font-size: 0.9rem;
+      color: #555;
+      text-align: center;
+    }
+
+    .card {
+      background: #fafafa;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0;
+      border: 1px solid #eee;
+    }
+
+    .label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #888;
+      margin-bottom: 4px;
+    }
+
+    .base-form {
+      font-size: 1.5rem;
       font-weight: 600;
+      margin-bottom: 4px;
     }
 
-    .menu {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      width: 100%;
-      max-width: 400px;
+    .phonetic {
+      font-size: 0.9rem;
+      color: #666;
     }
 
-    .menu a {
+    .answer {
+      margin-top: 10px;
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    .answer span {
       display: block;
-      padding: 16px 20px;
-      background: white;
-      border-radius: 10px;
-      text-decoration: none;
-      color: #2563eb;
-      font-size: 1.2rem;
-      font-weight: 500;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-      transition: transform 0.1s ease;
     }
 
-    .menu a:hover {
-      transform: translateY(-2px);
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      justify-content: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+      transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.2s;
+      white-space: nowrap;
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15) inset;
+    }
+
+    .toggle-row {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .progress {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: #4b5563;
+    }
+
+    .bottom-actions {
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      .app {
+        border-radius: 0;
+        min-height: 100vh;
+      }
+
+      .main-buttons,
+      .judge-buttons,
+      .secondary-buttons {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .main-buttons button,
+      .judge-buttons button,
+      .secondary-buttons button,
+      #resetBtn {
+        width: 100%;
+        justify-content: center;
+      }
     }
   </style>
 </head>
-
 <body>
+  <div class="app">
+    <h1>Czasowniki nieregularne</h1>
+    <p class="subtitle">Quiz z dźwiękiem i opcjonalnym tłumaczeniem</p>
 
-  <h1>Education Games</h1>
+    <div class="toggle-row">
+      <label>
+        <input type="checkbox" id="togglePolish" checked>
+        Pokazuj polskie znaczenie
+      </label>
+    </div>
 
-  <div class="menu">
-    <a href="english-irregular-verbs/">🇬🇧 Czasowniki nieregularne (English Verbs)</a>
-    <!-- Tu dodasz kolejne gry w przyszłości -->
+    <div class="card">
+      <div class="label">Forma podstawowa (po angielsku):</div>
+      <div id="baseForm" class="base-form">–</div>
+      <div id="phonetic" class="phonetic"></div>
+
+      <div id="answerBox" class="answer" style="display:none;">
+        <span><strong>Past simple:</strong> <span id="pastSimple"></span></span>
+        <span><strong>Past participle:</strong> <span id="pastParticiple"></span></span>
+        <span id="polishRow"><strong>Znaczenie po polsku:</strong> <span id="polish"></span></span>
+      </div>
+    </div>
+
+    <div class="buttons" style="flex-direction: column; gap: 14px; align-items: center;">
+      <div class="main-buttons" style="display:flex; gap:12px;">
+        <button
+          id="showAnswerBtn"
+          style="padding:12px 20px; font-size:1rem; background:#2563eb; color:white;">
+          Pokaż odpowiedź + dźwięk
+        </button>
+      </div>
+
+      <div class="judge-buttons" style="display:flex; gap:12px; margin-top:4px;">
+        <button
+          id="knowBtn"
+          style="padding:12px 22px; font-size:1rem; background:#16a34a; color:white;">
+          Umiem ✔️
+        </button>
+        <button
+          id="dontKnowBtn"
+          style="padding:12px 22px; font-size:1rem; background:#dc2626; color:white;">
+          Nie umiem ❌
+        </button>
+      </div>
+
+      <div class="secondary-buttons" style="display:flex; gap:12px; margin-top:10px;">
+        <button id="repeatQuestionBtn" class="secondary">Powtórz pytanie</button>
+        <button id="repeatAnswerBtn" class="secondary">Powtórz odpowiedź</button>
+      </div>
+    </div>
+
+    <p id="statsInfo" class="progress"></p>
+
+    <div class="bottom-actions">
+      <button id="resetBtn" class="secondary">Rozpocznij od nowa</button>
+    </div>
   </div>
 
+  <!-- najpierw dane, potem logika -->
+  <script src="verbs-en-irregular.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
