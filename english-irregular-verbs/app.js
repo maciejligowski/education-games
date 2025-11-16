@@ -100,25 +100,40 @@ function pickRandomVerb() {
   const index = Math.floor(Math.random() * remainingPool.length);
   currentVerb = remainingPool[index];
 
-  document.getElementById("baseForm").textContent = currentVerb.base;
+  const showPolishQuestion = document.getElementById("togglePolish").checked;
+  const labelElement = document.querySelector(".label");
+  
+  if (showPolishQuestion) {
+    // Pytanie po polsku
+    document.getElementById("baseForm").textContent = currentVerb.pl;
+    labelElement.textContent = "Znaczenie po polsku:";
+    speak(currentVerb.pl, "pl-PL");
+  } else {
+    // Pytanie po angielsku
+    document.getElementById("baseForm").textContent = currentVerb.base;
+    labelElement.textContent = "Forma podstawowa (po angielsku):";
+    speak(currentVerb.base, "en-GB");
+  }
+  
   document.getElementById("phonetic").textContent =
     currentVerb.phon ? `Wymowa: ${currentVerb.phon}` : "";
+  document.getElementById("phonetic").style.display = "none";
   document.getElementById("answerBox").style.display = "none";
 
-  // Pytanie – czytamy formę podstawową po angielsku (brytyjski)
-  speak(currentVerb.base, "en-GB");
   updateStats();
 }
 
 function showAnswer() {
   if (!currentVerb) return;
 
+  document.getElementById("baseFormAnswer").textContent = currentVerb.base;
   document.getElementById("pastSimple").textContent = currentVerb.past;
   document.getElementById("pastParticiple").textContent = currentVerb.pp;
   document.getElementById("polish").textContent = currentVerb.pl;
 
-  const showPL = document.getElementById("togglePolish").checked;
-  document.getElementById("polishRow").style.display = showPL ? "block" : "none";
+  // Always hide Polish row in answer since we show English forms
+  document.getElementById("polishRow").style.display = "none";
+  document.getElementById("phonetic").style.display = "block";
   document.getElementById("answerBox").style.display = "block";
 
   // Odpowiedź – czytamy trzy formy po angielsku
@@ -127,7 +142,12 @@ function showAnswer() {
 
 function repeatQuestion() {
   if (currentVerb) {
-    speak(currentVerb.base, "en-GB");
+    const showPolishQuestion = document.getElementById("togglePolish").checked;
+    if (showPolishQuestion) {
+      speak(currentVerb.pl, "pl-PL");
+    } else {
+      speak(currentVerb.base, "en-GB");
+    }
   }
 }
 
@@ -168,8 +188,23 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("resetBtn").addEventListener("click", resetPool);
 
   document.getElementById("togglePolish").addEventListener("change", () => {
-    const showPL = document.getElementById("togglePolish").checked;
-    document.getElementById("polishRow").style.display = showPL ? "block" : "none";
+    // When toggle changes, update the current question display
+    if (currentVerb) {
+      const showPolishQuestion = document.getElementById("togglePolish").checked;
+      const labelElement = document.querySelector(".label");
+      
+      if (showPolishQuestion) {
+        document.getElementById("baseForm").textContent = currentVerb.pl;
+        labelElement.textContent = "Znaczenie po polsku:";
+      } else {
+        document.getElementById("baseForm").textContent = currentVerb.base;
+        labelElement.textContent = "Forma podstawowa (po angielsku):";
+      }
+      
+      // Hide answer when switching modes
+      document.getElementById("answerBox").style.display = "none";
+      document.getElementById("phonetic").style.display = "none";
+    }
   });
 
   // Startujemy od losowego czasownika
