@@ -2,27 +2,61 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Education Games</title>
+
   <style>
     body {
-      font-family: sans-serif;
-      padding: 20px;
+      font-family: system-ui, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    a {
+
+    h1 {
+      margin-bottom: 30px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .menu a {
       display: block;
-      margin-bottom: 10px;
-      font-size: 1.2rem;
+      padding: 16px 20px;
+      background: white;
+      border-radius: 10px;
       text-decoration: none;
       color: #2563eb;
+      font-size: 1.2rem;
+      font-weight: 500;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transition: transform 0.1s ease;
+    }
+
+    .menu a:hover {
+      transform: translateY(-2px);
     }
   </style>
 </head>
+
 <body>
 
   <h1>Education Games</h1>
-  <p>Wybierz grę:</p>
 
-  <a href="english-irregular-verbs/">Czasowniki nieregularne (EN)</a>
+  <div class="menu">
+    <a href="english-irregular-verbs/">🇬🇧 Czasowniki nieregularne (English Verbs)</a>
+    <!-- Tu dodasz kolejne gry w przyszłości -->
+  </div>
 
 </body>
 </html>
