@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japanese Vocabulary Learning - 1000 Basic Words</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="app-title">Japanese Vocabulary</h1>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="progress-count">0</span>
+                        <span class="stat-label">/ 1000</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="streak-count">0</span>
+                        <span class="stat-label">streak</span>
+                    </div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Mode Selection -->
+            <div class="mode-selection" id="mode-selection">
+                <h2>Choose Learning Mode</h2>
+                <div class="mode-buttons">
+                    <button class="mode-btn" data-mode="flashcards">
+                        <span class="mode-icon">📚</span>
+                        <span class="mode-title">Flashcards</span>
+                        <span class="mode-desc">Learn with interactive cards</span>
+                    </button>
+                    <button class="mode-btn" data-mode="quiz">
+                        <span class="mode-icon">🎯</span>
+                        <span class="mode-title">Quiz Mode</span>
+                        <span class="mode-desc">Test your knowledge</span>
+                    </button>
+                    <button class="mode-btn" data-mode="listening">
+                        <span class="mode-icon">🎧</span>
+                        <span class="mode-title">Listening</span>
+                        <span class="mode-desc">Practice pronunciation</span>
+                    </button>
+                    <button class="mode-btn" data-mode="writing">
+                        <span class="mode-icon">✍️</span>
+                        <span class="mode-title">Writing</span>
+                        <span class="mode-desc">Practice writing</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Flashcard Mode -->
+            <div class="flashcard-container hidden" id="flashcard-container">
+                <div class="flashcard-header">
+                    <button class="back-btn" id="back-to-menu">← Back to Menu</button>
+                    <div class="card-counter">
+                        <span id="current-card">1</span> / <span id="total-cards">1000</span>
+                    </div>
+                </div>
+
+                <div class="flashcard" id="flashcard">
+                    <div class="card-content">
+                        <div class="japanese-text">
+                            <div class="kanji" id="kanji">漢字</div>
+                            <div class="hiragana" id="hiragana">ひらがな</div>
+                            <div class="romaji" id="romaji">romaji</div>
+                        </div>
+                        <div class="english-text hidden" id="english-text">
+                            <div class="translation" id="translation">English Translation</div>
+                            <div class="example" id="example">Example sentence</div>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="flip-btn" id="flip-btn">Show Answer</button>
+                    </div>
+                </div>
+
+                <div class="flashcard-controls">
+                    <button class="control-btn difficulty-btn" id="hard-btn">
+                        <span>😰</span>
+                        <span>Hard</span>
+                    </button>
+                    <button class="control-btn difficulty-btn" id="good-btn">
+                        <span>👍</span>
+                        <span>Good</span>
+                    </button>
+                    <button class="control-btn difficulty-btn" id="easy-btn">
+                        <span>😎</span>
+                        <span>Easy</span>
+                    </button>
+                </div>
+
+                <div class="navigation-controls">
+                    <button class="nav-btn" id="prev-btn">← Previous</button>
+                    <button class="shuffle-btn" id="shuffle-btn">🔀 Shuffle</button>
+                    <button class="nav-btn" id="next-btn">Next →</button>
+                </div>
+            </div>
+
+            <!-- Quiz Mode -->
+            <div class="quiz-container hidden" id="quiz-container">
+                <div class="quiz-header">
+                    <button class="back-btn" id="quiz-back-btn">← Back to Menu</button>
+                    <div class="quiz-progress">
+                        Question <span id="quiz-current">1</span> / <span id="quiz-total">10</span>
+                    </div>
+                    <div class="quiz-score">
+                        Score: <span id="quiz-score">0</span>
+                    </div>
+                </div>
+
+                <div class="quiz-question">
+                    <div class="question-text" id="question-text">What does this mean?</div>
+                    <div class="question-word">
+                        <div class="japanese-display" id="quiz-japanese">日本語</div>
+                    </div>
+                </div>
+
+                <div class="quiz-options" id="quiz-options">
+                    <!-- Options will be generated dynamically -->
+                </div>
+
+                <div class="quiz-feedback hidden" id="quiz-feedback">
+                    <div class="feedback-text" id="feedback-text"></div>
+                    <button class="next-question-btn" id="next-question-btn">Next Question</button>
+                </div>
+            </div>
+
+            <!-- Results Screen -->
+            <div class="results-container hidden" id="results-container">
+                <div class="results-content">
+                    <h2>Quiz Complete!</h2>
+                    <div class="final-score">
+                        <div class="score-circle">
+                            <span id="final-score">0</span>
+                            <small>/ 10</small>
+                        </div>
+                    </div>
+                    <div class="results-stats">
+                        <div class="result-stat">
+                            <span class="stat-number" id="correct-answers">0</span>
+                            <span class="stat-label">Correct</span>
+                        </div>
+                        <div class="result-stat">
+                            <span class="stat-number" id="wrong-answers">0</span>
+                            <span class="stat-label">Wrong</span>
+                        </div>
+                        <div class="result-stat">
+                            <span class="stat-number" id="accuracy">0%</span>
+                            <span class="stat-label">Accuracy</span>
+                        </div>
+                    </div>
+                    <div class="results-actions">
+                        <button class="action-btn" id="retry-quiz">Try Again</button>
+                        <button class="action-btn" id="back-to-main">Back to Menu</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Settings Panel -->
+        <div class="settings-panel hidden" id="settings-panel">
+            <div class="settings-content">
+                <h3>Settings</h3>
+                <div class="setting-group">
+                    <label>Show Kanji</label>
+                    <input type="checkbox" id="show-kanji" checked>
+                </div>
+                <div class="setting-group">
+                    <label>Show Hiragana</label>
+                    <input type="checkbox" id="show-hiragana" checked>
+                </div>
+                <div class="setting-group">
+                    <label>Show Romaji</label>
+                    <input type="checkbox" id="show-romaji" checked>
+                </div>
+                <div class="setting-group">
+                    <label>Auto-play Audio</label>
+                    <input type="checkbox" id="auto-audio">
+                </div>
+                <button class="close-settings" id="close-settings">Close</button>
+            </div>
+        </div>
+
+        <!-- Settings Button -->
+        <button class="settings-btn" id="settings-btn">⚙️</button>
+    </div>
+
+    <script src="vocabulary-data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
