@@ -70,17 +70,22 @@ function speak(text, lang) {
 const verbs = window.irregularVerbsEn || [];
 
 let currentVerb = null;
-// Pula: tylko czasowniki, których jeszcze NIE oznaczyliśmy jako „umiem”
+// Pula: tylko czasowniki, których jeszcze NIE oznaczyliśmy jako „umiem"
 let remainingPool = [...verbs];
+// Lista czasowników już zadanych w bieżącym cyklu
+let askedInCurrentCycle = [];
+// Lista czasowników na stałe opanowanych (nie wrócą do puli)
+let learnedVerbs = [];
 
 function updateStats() {
-  const remaining = remainingPool.length;
-  const total = verbs.length;
-  const known = total - remaining;
+  const totalLearning = remainingPool.length;
+  const askedThisCycle = askedInCurrentCycle.length;
+  const totalLearned = learnedVerbs.length;
+  const totalVerbs = verbs.length;
 
   const stats = document.getElementById("statsInfo");
-  stats.textContent =
-    `Do nauczenia zostało: ${remaining} z ${total} | Opanowane: ${known}`;
+  stats.textContent = 
+    `Cykl: ${askedThisCycle}/${totalLearning} | Opanowane: ${totalLearned}/${totalVerbs}`;
 }
 
 function pickRandomVerb() {
@@ -90,15 +95,39 @@ function pickRandomVerb() {
 
   if (remainingPool.length === 0) {
     currentVerb = null;
-    document.getElementById("baseForm").textContent = "Koniec puli 🎉";
+    document.getElementById("baseForm").textContent = "Wszystkie czasowniki opanowane! 🎉";
     document.getElementById("phonetic").textContent = "";
     document.getElementById("answerBox").style.display = "none";
     updateStats();
     return;
   }
 
-  const index = Math.floor(Math.random() * remainingPool.length);
-  currentVerb = remainingPool[index];
+  // Sprawdź czy wszystkie czasowniki w bieżącej puli zostały już zadane
+  const notAskedYet = remainingPool.filter(verb => 
+    !askedInCurrentCycle.some(asked => asked.base === verb.base)
+  );
+
+  if (notAskedYet.length === 0) {
+    // Koniec cyklu - resetuj listę zadanych
+    askedInCurrentCycle = [];
+    document.getElementById("baseForm").textContent = "Cykl zakończony! Rozpoczynam nowy...";
+    document.getElementById("phonetic").textContent = "";
+    document.getElementById("answerBox").style.display = "none";
+    updateStats();
+    
+    // Krótka przerwa przed nowym cyklem
+    setTimeout(() => {
+      pickRandomVerb();
+    }, 2000);
+    return;
+  }
+
+  // Wybierz losowy czasownik z tych jeszcze nie zadanych
+  const index = Math.floor(Math.random() * notAskedYet.length);
+  currentVerb = notAskedYet[index];
+  
+  // Dodaj do listy zadanych w tym cyklu
+  askedInCurrentCycle.push(currentVerb);
 
   const showPolishQuestion = document.getElementById("togglePolish").checked;
   const labelElement = document.querySelector(".label");
