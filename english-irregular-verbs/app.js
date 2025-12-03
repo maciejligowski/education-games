@@ -189,10 +189,24 @@ function repeatAnswer() {
 
 function markKnown() {
   if (!currentVerb) return;
-  const idx = remainingPool.indexOf(currentVerb);
-  if (idx !== -1) {
-    remainingPool.splice(idx, 1); // usuwamy z puli tylko jeśli „umiem”
+  
+  // Dodaj do listy opanowanych
+  if (!learnedVerbs.some(verb => verb.base === currentVerb.base)) {
+    learnedVerbs.push(currentVerb);
   }
+  
+  // Usuń z puli do nauki
+  const idx = remainingPool.findIndex(verb => verb.base === currentVerb.base);
+  if (idx !== -1) {
+    remainingPool.splice(idx, 1);
+  }
+  
+  // Usuń również z listy zadanych w bieżącym cyklu, jeśli tam jest
+  const askedIdx = askedInCurrentCycle.findIndex(verb => verb.base === currentVerb.base);
+  if (askedIdx !== -1) {
+    askedInCurrentCycle.splice(askedIdx, 1);
+  }
+  
   pickRandomVerb();
 }
 
@@ -204,6 +218,8 @@ function markUnknown() {
 
 function resetPool() {
   remainingPool = [...verbs];
+  askedInCurrentCycle = [];
+  learnedVerbs = [];
   currentVerb = null;
   pickRandomVerb();
 }

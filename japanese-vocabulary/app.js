@@ -1,488 +1,262 @@
-// Japanese Vocabulary Learning App - Main JavaScript
-class JapaneseVocabularyApp {
-    constructor() {
-        this.currentMode = 'menu';
-        this.currentCardIndex = 0;
-        this.isFlipped = false;
-        this.progress = this.loadProgress();
-        this.streak = this.loadStreak();
-        this.shuffledIndices = [];
-        this.quizScore = 0;
-        this.quizCurrentQuestion = 0;
-        this.quizQuestions = [];
-        this.quizAnswers = [];
-        this.settings = this.loadSettings();
-        
-        this.initializeApp();
-        this.bindEvents();
-        this.updateStats();
+// japanese-vocabulary/app.js
+
+// ======================
+// USTAWIENIA GŁOSU / TTS
+// ======================
+
+// Cache na głosy
+let japaneseVoice = null;
+let polishVoice = null;
+
+// Ładowanie głosów, gdy tylko będą dostępne
+window.speechSynthesis.onvoiceschanged = () => {
+  const voices = window.speechSynthesis.getVoices();
+
+  // Japoński – preferowany
+  japaneseVoice =
+    voices.find(v => v.lang === "ja-JP") ||
+    voices.find(v => v.lang.startsWith("ja"));
+
+  // Polski – preferowany
+  polishVoice =
+    voices.find(v => v.lang === "pl-PL") ||
+    voices.find(v => v.lang.startsWith("pl"));
+};
+
+// Główna funkcja mówienia
+function speak(text, lang) {
+  if (!("speechSynthesis" in window)) {
+    alert("Twoja przeglądarka nie obsługuje mowy (speechSynthesis).");
+    return;
+  }
+
+  // Automatyczne wykrycie języka, jeśli nie podano
+  if (!lang) {
+    // Jeśli są polskie znaki – traktuj jako polski
+    if (/[ąćęłńóśźż]/i.test(text)) {
+      lang = "pl-PL";
+    } else {
+      lang = "ja-JP";
     }
+  }
 
-    initializeApp() {
-        // Shuffle the vocabulary array for random order
-        this.shuffleVocabulary();
-        this.updateProgressBar();
-    }
+  window.speechSynthesis.cancel();
 
-    bindEvents() {
-        // Mode selection
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const mode = e.currentTarget.dataset.mode;
-                this.switchMode(mode);
-            });
-        });
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang;
 
-        // Flashcard events
-        document.getElementById('back-to-menu').addEventListener('click', () => this.switchMode('menu'));
-        document.getElementById('flip-btn').addEventListener('click', () => this.flipCard());
-        document.getElementById('prev-btn').addEventListener('click', () => this.previousCard());
-        document.getElementById('next-btn').addEventListener('click', () => this.nextCard());
-        document.getElementById('shuffle-btn').addEventListener('click', () => this.shuffleVocabulary());
+  // Wybór głosu
+  if (lang.startsWith("ja") && japaneseVoice) {
+    utter.voice = japaneseVoice;
+  }
+  if (lang.startsWith("pl") && polishVoice) {
+    utter.voice = polishVoice;
+  }
 
-        // Difficulty buttons
-        document.getElementById('hard-btn').addEventListener('click', () => this.markDifficulty('hard'));
-        document.getElementById('good-btn').addEventListener('click', () => this.markDifficulty('good'));
-        document.getElementById('easy-btn').addEventListener('click', () => this.markDifficulty('easy'));
+  // Styl mówienia – wolniej, jak nauczyciel
+  utter.rate = 0.8;   // 1.0 = normalnie, 0.8 = trochę wolniej
+  utter.pitch = 1.0;  // wysokość głosu
+  utter.volume = 1.0; // głośność
 
-        // Quiz events
-        document.getElementById('quiz-back-btn').addEventListener('click', () => this.switchMode('menu'));
-        document.getElementById('next-question-btn').addEventListener('click', () => this.nextQuestion());
-        document.getElementById('retry-quiz').addEventListener('click', () => this.startQuiz());
-        document.getElementById('back-to-main').addEventListener('click', () => this.switchMode('menu'));
-
-        // Settings
-        document.getElementById('settings-btn').addEventListener('click', () => this.toggleSettings());
-        document.getElementById('close-settings').addEventListener('click', () => this.toggleSettings());
-
-        // Settings checkboxes
-        document.getElementById('show-kanji').addEventListener('change', (e) => {
-            this.settings.showKanji = e.target.checked;
-            this.saveSettings();
-            this.updateCardDisplay();
-        });
-        document.getElementById('show-hiragana').addEventListener('change', (e) => {
-            this.settings.showHiragana = e.target.checked;
-            this.saveSettings();
-            this.updateCardDisplay();
-        });
-        document.getElementById('show-romaji').addEventListener('change', (e) => {
-            this.settings.showRomaji = e.target.checked;
-            this.saveSettings();
-            this.updateCardDisplay();
-        });
-        document.getElementById('auto-audio').addEventListener('change', (e) => {
-            this.settings.autoAudio = e.target.checked;
-            this.saveSettings();
-        });
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => this.handleKeyboard(e));
-    }
-
-    switchMode(mode) {
-        // Hide all containers
-        document.querySelectorAll('.main-content > div').forEach(div => {
-            div.classList.add('hidden');
-        });
-
-        this.currentMode = mode;
-
-        switch(mode) {
-            case 'menu':
-                document.getElementById('mode-selection').classList.remove('hidden');
-                break;
-            case 'flashcards':
-                document.getElementById('flashcard-container').classList.remove('hidden');
-                this.loadCard();
-                break;
-            case 'quiz':
-                this.startQuiz();
-                break;
-            case 'listening':
-                // Future implementation
-                alert('Listening mode coming soon!');
-                this.switchMode('menu');
-                break;
-            case 'writing':
-                // Future implementation
-                alert('Writing mode coming soon!');
-                this.switchMode('menu');
-                break;
-        }
-    }
-
-    shuffleVocabulary() {
-        this.shuffledIndices = Array.from({length: vocabularyData.length}, (_, i) => i);
-        for (let i = this.shuffledIndices.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [this.shuffledIndices[i], this.shuffledIndices[j]] = [this.shuffledIndices[j], this.shuffledIndices[i]];
-        }
-        this.currentCardIndex = 0;
-        if (this.currentMode === 'flashcards') {
-            this.loadCard();
-        }
-    }
-
-    loadCard() {
-        if (!vocabularyData || vocabularyData.length === 0) {
-            console.error('Vocabulary data not loaded');
-            return;
-        }
-
-        const actualIndex = this.shuffledIndices[this.currentCardIndex];
-        const word = vocabularyData[actualIndex];
-        
-        // Update card counter
-        document.getElementById('current-card').textContent = this.currentCardIndex + 1;
-        document.getElementById('total-cards').textContent = vocabularyData.length;
-
-        // Reset card state
-        this.isFlipped = false;
-        document.getElementById('english-text').classList.add('hidden');
-        document.getElementById('flip-btn').textContent = 'Show Answer';
-
-        this.updateCardDisplay();
-    }
-
-    updateCardDisplay() {
-        const actualIndex = this.shuffledIndices[this.currentCardIndex];
-        const word = vocabularyData[actualIndex];
-
-        // Update Japanese text based on settings
-        document.getElementById('kanji').textContent = word.kanji || word.hiragana;
-        document.getElementById('kanji').style.display = this.settings.showKanji && word.kanji ? 'block' : 'none';
-        
-        document.getElementById('hiragana').textContent = word.hiragana;
-        document.getElementById('hiragana').style.display = this.settings.showHiragana ? 'block' : 'none';
-        
-        document.getElementById('romaji').textContent = word.romaji;
-        document.getElementById('romaji').style.display = this.settings.showRomaji ? 'block' : 'none';
-
-        // Update English text
-        document.getElementById('translation').textContent = word.english;
-        document.getElementById('example').textContent = word.example || `Example: ${word.english} is important to learn.`;
-
-        // Auto-play audio if enabled
-        if (this.settings.autoAudio && 'speechSynthesis' in window) {
-            this.speakJapanese(word.hiragana);
-        }
-    }
-
-    flipCard() {
-        this.isFlipped = !this.isFlipped;
-        const englishText = document.getElementById('english-text');
-        const flipBtn = document.getElementById('flip-btn');
-
-        if (this.isFlipped) {
-            englishText.classList.remove('hidden');
-            flipBtn.textContent = 'Hide Answer';
-        } else {
-            englishText.classList.add('hidden');
-            flipBtn.textContent = 'Show Answer';
-        }
-    }
-
-    nextCard() {
-        this.currentCardIndex = (this.currentCardIndex + 1) % this.shuffledIndices.length;
-        this.loadCard();
-    }
-
-    previousCard() {
-        this.currentCardIndex = this.currentCardIndex > 0 ? this.currentCardIndex - 1 : this.shuffledIndices.length - 1;
-        this.loadCard();
-    }
-
-    markDifficulty(level) {
-        const actualIndex = this.shuffledIndices[this.currentCardIndex];
-        
-        // Update progress based on difficulty
-        if (!this.progress.includes(actualIndex)) {
-            this.progress.push(actualIndex);
-            this.updateStreak(true);
-        }
-
-        // Save progress
-        this.saveProgress();
-        this.updateStats();
-        this.updateProgressBar();
-
-        // Move to next card automatically
-        setTimeout(() => {
-            this.nextCard();
-        }, 500);
-    }
-
-    startQuiz() {
-        document.getElementById('quiz-container').classList.remove('hidden');
-        document.getElementById('results-container').classList.add('hidden');
-        
-        this.quizScore = 0;
-        this.quizCurrentQuestion = 0;
-        this.quizAnswers = [];
-        
-        // Generate 10 random questions
-        this.generateQuizQuestions();
-        this.showQuestion();
-    }
-
-    generateQuizQuestions() {
-        this.quizQuestions = [];
-        const usedIndices = new Set();
-        
-        while (this.quizQuestions.length < 10 && usedIndices.size < vocabularyData.length) {
-            const randomIndex = Math.floor(Math.random() * vocabularyData.length);
-            if (!usedIndices.has(randomIndex)) {
-                usedIndices.add(randomIndex);
-                this.quizQuestions.push(randomIndex);
-            }
-        }
-    }
-
-    showQuestion() {
-        if (this.quizCurrentQuestion >= this.quizQuestions.length) {
-            this.showResults();
-            return;
-        }
-
-        const questionIndex = this.quizQuestions[this.quizCurrentQuestion];
-        const correctWord = vocabularyData[questionIndex];
-        
-        // Update question display
-        document.getElementById('quiz-current').textContent = this.quizCurrentQuestion + 1;
-        document.getElementById('quiz-total').textContent = this.quizQuestions.length;
-        document.getElementById('quiz-score').textContent = this.quizScore;
-        document.getElementById('quiz-japanese').textContent = correctWord.kanji || correctWord.hiragana;
-
-        // Generate options
-        const options = this.generateOptions(correctWord.english, questionIndex);
-        this.displayOptions(options);
-
-        // Hide feedback
-        document.getElementById('quiz-feedback').classList.add('hidden');
-    }
-
-    generateOptions(correctAnswer, correctIndex) {
-        const options = [correctAnswer];
-        const usedIndices = new Set([correctIndex]);
-        
-        while (options.length < 4) {
-            const randomIndex = Math.floor(Math.random() * vocabularyData.length);
-            if (!usedIndices.has(randomIndex)) {
-                usedIndices.add(randomIndex);
-                options.push(vocabularyData[randomIndex].english);
-            }
-        }
-        
-        // Shuffle options
-        for (let i = options.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [options[i], options[j]] = [options[j], options[i]];
-        }
-        
-        return options;
-    }
-
-    displayOptions(options) {
-        const container = document.getElementById('quiz-options');
-        container.innerHTML = '';
-        
-        options.forEach(option => {
-            const button = document.createElement('button');
-            button.className = 'quiz-option';
-            button.textContent = option;
-            button.addEventListener('click', () => this.selectAnswer(option, button));
-            container.appendChild(button);
-        });
-    }
-
-    selectAnswer(selectedAnswer, buttonElement) {
-        const questionIndex = this.quizQuestions[this.quizCurrentQuestion];
-        const correctAnswer = vocabularyData[questionIndex].english;
-        const isCorrect = selectedAnswer === correctAnswer;
-        
-        // Disable all options
-        document.querySelectorAll('.quiz-option').forEach(btn => {
-            btn.style.pointerEvents = 'none';
-            if (btn.textContent === correctAnswer) {
-                btn.classList.add('correct');
-            } else if (btn === buttonElement && !isCorrect) {
-                btn.classList.add('incorrect');
-            }
-        });
-
-        // Update score and answers
-        if (isCorrect) {
-            this.quizScore++;
-            this.updateStreak(true);
-        } else {
-            this.updateStreak(false);
-        }
-        
-        this.quizAnswers.push({
-            question: vocabularyData[questionIndex],
-            selected: selectedAnswer,
-            correct: correctAnswer,
-            isCorrect: isCorrect
-        });
-
-        // Show feedback
-        const feedbackText = document.getElementById('feedback-text');
-        feedbackText.textContent = isCorrect ? 'Correct! 🎉' : `Incorrect. The answer is: ${correctAnswer}`;
-        feedbackText.className = `feedback-text ${isCorrect ? 'correct' : 'incorrect'}`;
-        document.getElementById('quiz-feedback').classList.remove('hidden');
-    }
-
-    nextQuestion() {
-        this.quizCurrentQuestion++;
-        this.showQuestion();
-    }
-
-    showResults() {
-        document.getElementById('quiz-container').classList.add('hidden');
-        document.getElementById('results-container').classList.remove('hidden');
-        
-        const accuracy = Math.round((this.quizScore / this.quizQuestions.length) * 100);
-        const correctAnswers = this.quizScore;
-        const wrongAnswers = this.quizQuestions.length - this.quizScore;
-        
-        document.getElementById('final-score').textContent = this.quizScore;
-        document.getElementById('correct-answers').textContent = correctAnswers;
-        document.getElementById('wrong-answers').textContent = wrongAnswers;
-        document.getElementById('accuracy').textContent = `${accuracy}%`;
-        
-        this.updateStats();
-    }
-
-    updateStats() {
-        document.getElementById('progress-count').textContent = this.progress.length;
-        document.getElementById('streak-count').textContent = this.streak;
-    }
-
-    updateProgressBar() {
-        const percentage = (this.progress.length / vocabularyData.length) * 100;
-        document.getElementById('progress-fill').style.width = `${percentage}%`;
-    }
-
-    updateStreak(correct) {
-        if (correct) {
-            this.streak++;
-        } else {
-            this.streak = 0;
-        }
-        this.saveStreak();
-        this.updateStats();
-    }
-
-    toggleSettings() {
-        const panel = document.getElementById('settings-panel');
-        panel.classList.toggle('active');
-        
-        // Update settings display
-        document.getElementById('show-kanji').checked = this.settings.showKanji;
-        document.getElementById('show-hiragana').checked = this.settings.showHiragana;
-        document.getElementById('show-romaji').checked = this.settings.showRomaji;
-        document.getElementById('auto-audio').checked = this.settings.autoAudio;
-    }
-
-    speakJapanese(text) {
-        if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'ja-JP';
-            utterance.rate = 0.8;
-            speechSynthesis.speak(utterance);
-        }
-    }
-
-    handleKeyboard(e) {
-        if (this.currentMode === 'flashcards') {
-            switch(e.key) {
-                case ' ':
-                case 'Enter':
-                    e.preventDefault();
-                    this.flipCard();
-                    break;
-                case 'ArrowRight':
-                case 'n':
-                    e.preventDefault();
-                    this.nextCard();
-                    break;
-                case 'ArrowLeft':
-                case 'p':
-                    e.preventDefault();
-                    this.previousCard();
-                    break;
-                case '1':
-                    e.preventDefault();
-                    this.markDifficulty('hard');
-                    break;
-                case '2':
-                    e.preventDefault();
-                    this.markDifficulty('good');
-                    break;
-                case '3':
-                    e.preventDefault();
-                    this.markDifficulty('easy');
-                    break;
-            }
-        }
-    }
-
-    // Local Storage Methods
-    loadProgress() {
-        const saved = localStorage.getItem('japanese-vocab-progress');
-        return saved ? JSON.parse(saved) : [];
-    }
-
-    saveProgress() {
-        localStorage.setItem('japanese-vocab-progress', JSON.stringify(this.progress));
-    }
-
-    loadStreak() {
-        const saved = localStorage.getItem('japanese-vocab-streak');
-        return saved ? parseInt(saved, 10) : 0;
-    }
-
-    saveStreak() {
-        localStorage.setItem('japanese-vocab-streak', this.streak.toString());
-    }
-
-    loadSettings() {
-        const saved = localStorage.getItem('japanese-vocab-settings');
-        const defaultSettings = {
-            showKanji: true,
-            showHiragana: true,
-            showRomaji: true,
-            autoAudio: false
-        };
-        return saved ? Object.assign(defaultSettings, JSON.parse(saved)) : defaultSettings;
-    }
-
-    saveSettings() {
-        localStorage.setItem('japanese-vocab-settings', JSON.stringify(this.settings));
-    }
+  window.speechSynthesis.speak(utter);
 }
 
-// Initialize app when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    // Check if vocabulary data is loaded
-    if (typeof vocabularyData === 'undefined') {
-        console.error('Vocabulary data not loaded. Make sure vocabulary-data.js is included.');
-        return;
-    }
+// ======================
+// LOGIKA GRY
+// ======================
+
+// Dane słownictwa są w osobnym pliku vocabulary-jp-basic.js
+// i dodają tablicę window.vocabularyJp
+const words = window.vocabularyJp || [];
+
+let currentWord = null;
+// Pula: tylko słowa, których jeszcze NIE oznaczyliśmy jako „umiem"
+let remainingPool = [...words];
+// Lista słów już zadanych w bieżącym cyklu
+let askedInCurrentCycle = [];
+// Lista słów na stałe opanowanych (nie wrócą do puli)
+let learnedWords = [];
+
+function updateStats() {
+  const totalLearning = remainingPool.length;
+  const askedThisCycle = askedInCurrentCycle.length;
+  const totalLearned = learnedWords.length;
+  const totalWords = words.length;
+
+  const stats = document.getElementById("statsInfo");
+  stats.textContent = 
+    `Cykl: ${askedThisCycle}/${totalLearning} | Opanowane: ${totalLearned}/${totalWords}`;
+}
+
+function pickRandomWord() {
+  if (!words.length) {
+    console.warn("Brak danych słownictwa (words). Upewnij się, że vocabulary-jp-basic.js jest poprawnie załadowany.");
+  }
+
+  if (remainingPool.length === 0) {
+    currentWord = null;
+    document.getElementById("japanese").textContent = "Wszystkie słowa opanowane! 🎉";
+    document.getElementById("pronunciation").textContent = "";
+    document.getElementById("answerBox").style.display = "none";
+    updateStats();
+    return;
+  }
+
+  // Sprawdź czy wszystkie słowa w bieżącej puli zostały już zadane
+  const notAskedYet = remainingPool.filter(word => 
+    !askedInCurrentCycle.some(asked => asked.hiragana === word.hiragana)
+  );
+
+  if (notAskedYet.length === 0) {
+    // Koniec cyklu - resetuj listę zadanych
+    askedInCurrentCycle = [];
+    document.getElementById("japanese").textContent = "Cykl zakończony! Rozpoczynam nowy...";
+    document.getElementById("pronunciation").textContent = "";
+    document.getElementById("answerBox").style.display = "none";
+    updateStats();
     
-    new JapaneseVocabularyApp();
-});
+    // Krótka przerwa przed nowym cyklem
+    setTimeout(() => {
+      pickRandomWord();
+    }, 2000);
+    return;
+  }
 
-// Service Worker for offline functionality (optional)
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then((registration) => {
-                console.log('SW registered: ', registration);
-            })
-            .catch((registrationError) => {
-                console.log('SW registration failed: ', registrationError);
-            });
-    });
+  // Wybierz losowe słowo z tych jeszcze nie zadanych
+  const index = Math.floor(Math.random() * notAskedYet.length);
+  currentWord = notAskedYet[index];
+  
+  // Dodaj do listy zadanych w tym cyklu
+  askedInCurrentCycle.push(currentWord);
+
+  const showPolishQuestion = document.getElementById("togglePolish").checked;
+  const labelElement = document.querySelector(".label");
+  
+  if (showPolishQuestion) {
+    // Pytanie po polsku
+    document.getElementById("japanese").textContent = currentWord.pl;
+    labelElement.textContent = "Znaczenie po polsku:";
+    speak(currentWord.pl, "pl-PL");
+  } else {
+    // Pytanie po japońsku
+    const displayText = currentWord.kanji || currentWord.hiragana;
+    document.getElementById("japanese").textContent = displayText;
+    labelElement.textContent = "Słowo po japońsku:";
+    speak(currentWord.hiragana, "ja-JP");
+  }
+  
+  document.getElementById("pronunciation").textContent =
+    currentWord.romaji ? `Romaji: ${currentWord.romaji}` : "";
+  document.getElementById("pronunciation").style.display = "none";
+  document.getElementById("answerBox").style.display = "none";
+
+  updateStats();
 }
+
+function showAnswer() {
+  if (!currentWord) return;
+
+  document.getElementById("hiragana").textContent = currentWord.hiragana;
+  document.getElementById("romaji").textContent = currentWord.romaji;
+  document.getElementById("polish").textContent = currentWord.pl;
+
+  // Show Polish meaning in answer only when toggle is unchecked (Japanese question mode)
+  const showPolishQuestion = document.getElementById("togglePolish").checked;
+  document.getElementById("polishRow").style.display = showPolishQuestion ? "none" : "block";
+  document.getElementById("pronunciation").style.display = "block";
+  document.getElementById("answerBox").style.display = "block";
+
+  // Odpowiedź – czytamy po japońsku
+  speak(currentWord.hiragana, "ja-JP");
+}
+
+function repeatQuestion() {
+  if (currentWord) {
+    const showPolishQuestion = document.getElementById("togglePolish").checked;
+    if (showPolishQuestion) {
+      speak(currentWord.pl, "pl-PL");
+    } else {
+      speak(currentWord.hiragana, "ja-JP");
+    }
+  }
+}
+
+function repeatAnswer() {
+  if (currentWord) {
+    speak(currentWord.hiragana, "ja-JP");
+  }
+}
+
+function markKnown() {
+  if (!currentWord) return;
+  
+  // Dodaj do listy opanowanych
+  if (!learnedWords.some(word => word.hiragana === currentWord.hiragana)) {
+    learnedWords.push(currentWord);
+  }
+  
+  // Usuń z puli do nauki
+  const idx = remainingPool.findIndex(word => word.hiragana === currentWord.hiragana);
+  if (idx !== -1) {
+    remainingPool.splice(idx, 1);
+  }
+  
+  // Usuń również z listy zadanych w bieżącym cyklu, jeśli tam jest
+  const askedIdx = askedInCurrentCycle.findIndex(word => word.hiragana === currentWord.hiragana);
+  if (askedIdx !== -1) {
+    askedInCurrentCycle.splice(askedIdx, 1);
+  }
+  
+  pickRandomWord();
+}
+
+function markUnknown() {
+  if (!currentWord) return;
+  // Nic nie usuwamy – dalej zostaje w puli
+  pickRandomWord();
+}
+
+function resetPool() {
+  remainingPool = [...words];
+  askedInCurrentCycle = [];
+  learnedWords = [];
+  currentWord = null;
+  pickRandomWord();
+}
+
+// Podpinamy eventy PO załadowaniu DOM
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("showAnswerBtn").addEventListener("click", showAnswer);
+  document.getElementById("repeatQuestionBtn").addEventListener("click", repeatQuestion);
+  document.getElementById("repeatAnswerBtn").addEventListener("click", repeatAnswer);
+  document.getElementById("knowBtn").addEventListener("click", markKnown);
+  document.getElementById("dontKnowBtn").addEventListener("click", markUnknown);
+  document.getElementById("resetBtn").addEventListener("click", resetPool);
+
+  document.getElementById("togglePolish").addEventListener("change", () => {
+    // When toggle changes, update the current question display
+    if (currentWord) {
+      const showPolishQuestion = document.getElementById("togglePolish").checked;
+      const labelElement = document.querySelector(".label");
+      
+      if (showPolishQuestion) {
+        document.getElementById("japanese").textContent = currentWord.pl;
+        labelElement.textContent = "Znaczenie po polsku:";
+      } else {
+        const displayText = currentWord.kanji || currentWord.hiragana;
+        document.getElementById("japanese").textContent = displayText;
+        labelElement.textContent = "Słowo po japońsku:";
+      }
+      
+      // Hide answer when switching modes
+      document.getElementById("answerBox").style.display = "none";
+      document.getElementById("pronunciation").style.display = "none";
+    }
+  });
+
+  // Startujemy od losowego słowa
+  pickRandomWord();
+});
+// ======================
+// KONIEC PLIKU app.js
+// ======================
