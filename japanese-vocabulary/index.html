@@ -1,393 +1,458 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Słownictwo japońskie – quiz z dźwiękiem</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Słownictwo japońskie - Quiz</title>
   <style>
-    body {
-      font-family: 'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f5f5f5;
+    * {
       margin: 0;
       padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
+      padding: 20px;
     }
 
-    .app {
-      background: #ffffff;
+    .app-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    /* Header Section */
+    .header {
+      background: white;
       border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      padding: 24px 28px;
-      max-width: 500px;
-      width: 100%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      padding: 24px;
+      text-align: center;
     }
 
-    h1 {
-      font-size: 1.4rem;
-      margin-top: 0;
+    .header h1 {
+      color: #333;
+      font-size: 2rem;
       margin-bottom: 8px;
-      text-align: center;
+      font-weight: 700;
     }
 
-    p.subtitle {
-      margin-top: 0;
-      font-size: 0.9rem;
-      color: #555;
-      text-align: center;
+    .header p {
+      color: #666;
+      font-size: 1rem;
     }
 
-    .card {
-      background: #fafafa;
-      border-radius: 12px;
-      padding: 16px;
-      margin: 16px 0;
-      border: 1px solid #eee;
+    /* Controls Panel */
+    .controls-panel {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      padding: 24px;
     }
 
-    .label {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #888;
-      margin-bottom: 4px;
-    }
-
-    .word-display {
-      font-size: 1.5rem;
+    .controls-title {
+      font-size: 1.2rem;
       font-weight: 600;
-      margin-bottom: 4px;
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 12px;
     }
 
-    .japanese {
-      font-family: 'Noto Sans JP', sans-serif;
-      font-size: 1.8rem;
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .control-group label {
+      font-weight: 600;
+      color: #333;
       margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .control-group select {
+      padding: 12px 16px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .control-group select:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 2px solid #e9ecef;
+      transition: all 0.3s ease;
+    }
+
+    .checkbox-group:hover {
+      background: #e9ecef;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: #007bff;
+    }
+
+    .checkbox-group label {
+      margin: 0 !important;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Main Learning Card */
+    .main-card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      padding: 32px;
+      text-align: center;
+      min-height: 350px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .question-label {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+
+    .question-text {
+      font-size: 3.5rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 20px;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'MS Gothic', 'Yu Gothic', monospace;
     }
 
     .pronunciation {
-      font-size: 0.9rem;
+      font-size: 1.2rem;
       color: #666;
+      font-style: italic;
+      margin-bottom: 24px;
     }
 
-    .answer {
-      margin-top: 10px;
-      font-size: 1.05rem;
-      line-height: 1.6;
+    .answer-box {
+      background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+      border: 2px solid #4caf50;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 24px 0;
+      text-align: left;
     }
 
-    .answer span {
+    .answer-box span {
       display: block;
+      margin-bottom: 8px;
+      font-size: 1.05rem;
     }
 
-    .buttons {
+    .answer-box span strong {
+      color: #333;
+      min-width: 100px;
+      display: inline-block;
+    }
+
+    .answer-box span:last-child {
+      margin-bottom: 0;
+    }
+
+    #categoryRow {
+      font-style: italic;
+      color: #666;
+      font-size: 0.95rem;
+      border-top: 1px solid #ddd;
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+
+    /* Actions Panel */
+    .actions-panel {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      padding: 24px;
+    }
+
+    .primary-actions {
       display: flex;
-      flex-wrap: wrap;
-      margin-top: 8px;
+      gap: 16px;
       justify-content: center;
+      margin-bottom: 20px;
     }
 
-    button {
+    .secondary-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      padding: 14px 28px;
       border: none;
-      border-radius: 999px;
-      padding: 8px 14px;
-      font-size: 0.9rem;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 600;
       cursor: pointer;
-      background: #2563eb;
+      transition: all 0.3s ease;
+      min-width: 140px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #007bff, #0056b3);
       color: white;
-      transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.2s;
-      white-space: nowrap;
     }
 
-    button.secondary {
-      background: #e5e7eb;
-      color: #111827;
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,123,255,0.4);
     }
 
-    button:active {
-      transform: translateY(1px);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15) inset;
+    .btn-success {
+      background: linear-gradient(135deg, #28a745, #1e7e34);
+      color: white;
     }
 
-    .toggle-row {
-      margin-top: 10px;
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(40,167,69,0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #dc3545, #bd2130);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(220,53,69,0.4);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #6c757d, #545b62);
+      color: white;
+      font-size: 0.95rem;
+      padding: 10px 20px;
+      min-width: 120px;
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(108,117,125,0.4);
+    }
+
+    /* Stats Panel */
+    .stats-panel {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      padding: 20px;
       text-align: center;
+    }
+
+    .stats-content {
+      font-size: 1.05rem;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .reset-section {
+      border-top: 1px solid #e9ecef;
+      margin-top: 20px;
+      padding-top: 20px;
+      text-align: center;
+    }
+
+    .btn-reset {
+      background: linear-gradient(135deg, #6c757d, #545b62);
+      color: white;
       font-size: 0.9rem;
+      padding: 8px 20px;
+      min-width: auto;
     }
 
-    .progress {
-      text-align: center;
-      margin-top: 14px;
-      font-size: 0.85rem;
-      color: #4b5563;
-    }
-
-    .bottom-actions {
-      margin-top: 8px;
-      text-align: center;
-    }
-
-    @media (max-width: 480px) {
-      .app {
-        border-radius: 0;
-        min-height: 100vh;
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .app-container {
+        padding: 10px;
+        gap: 16px;
       }
 
-      .main-buttons,
-      .judge-buttons,
-      .secondary-buttons {
+      .controls-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .question-text {
+        font-size: 2.5rem;
+        min-height: 80px;
+      }
+
+      .primary-actions {
         flex-direction: column;
-        width: 100%;
       }
 
-      .main-buttons button,
-      .judge-buttons button,
-      .secondary-buttons button,
-      #resetBtn {
-        width: 100%;
-        justify-content: center;
+      .secondary-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .btn {
+        min-width: 100px;
+        padding: 12px 20px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <h1>Słownictwo japońskie</h1>
-    <p class="subtitle">Quiz z dźwiękiem i opcjonalnym tłumaczeniem</p>
-
-    <div class="toggle-row">
-      <label>
-        <input type="checkbox" id="togglePolish" checked>
-        Pokazuj polskie znaczenie
-      </label>
+  <div class="app-container">
+    <!-- Header Section -->
+    <div class="header">
+      <h1>Słownictwo japońskie</h1>
+      <p>Quiz z dźwiękiem i opcjonalnym tłumaczeniem</p>
     </div>
 
-    <div class="card">
-      <div class="label">Słowo po japońsku:</div>
-      <div id="wordDisplay" class="word-display">
-        <div id="japanese" class="japanese">–</div>
+    <!-- Controls Panel -->
+    <div class="controls-panel">
+      <div class="controls-title">⚙️ Ustawienia nauki</div>
+      <div class="controls-grid">
+        <div class="control-group">
+          <label>Tryb pytania:</label>
+          <select id="questionMode">
+            <option value="polish">Pytanie po polsku → Odpowiedź po japońsku</option>
+            <option value="hiragana">Pytanie hiragana → Odpowiedź po polsku</option>
+            <option value="kanji">Pytanie kanji → Odpowiedź po polsku</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <label>Kategoria słów:</label>
+          <select id="categoryFilter">
+            <option value="all">Wszystkie kategorie</option>
+            <option value="people">Ludzie</option>
+            <option value="occupations">Zawody</option>
+            <option value="body">Ciało</option>
+            <option value="family">Rodzina</option>
+            <option value="animals">Zwierzęta</option>
+            <option value="plants">Rośliny</option>
+            <option value="food">Jedzenie</option>
+            <option value="drink">Napoje</option>
+            <option value="time">Czas</option>
+            <option value="weather">Pogoda</option>
+            <option value="colors">Kolory</option>
+            <option value="numbers">Liczby</option>
+            <option value="directions">Kierunki</option>
+            <option value="home">Dom</option>
+            <option value="clothes">Ubrania</option>
+            <option value="transport">Transport</option>
+            <option value="language">Język</option>
+            <option value="adjectives">Przymiotniki</option>
+            <option value="verbs">Czasowniki</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="enableVoice" checked>
+            <label for="enableVoice">🔊 Włącz dźwięk</label>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <!-- Main Learning Card -->
+    <div class="main-card">
+      <div class="question-label" id="questionLabel">Znaczenie po polsku:</div>
+      <div id="questionText" class="question-text">–</div>
       <div id="pronunciation" class="pronunciation" style="display:none;"></div>
-
-      <div id="answerBox" class="answer" style="display:none;">
-        <span><strong>Hiragana:</strong> <span id="hiragana"></span></span>
-        <span><strong>Romaji:</strong> <span id="romaji"></span></span>
+      
+      <div id="answerBox" class="answer-box" style="display:none;">
+        <span id="kanjiRow"><strong>Kanji:</strong> <span id="kanji"></span></span>
+        <span id="hiraganaRow"><strong>Hiragana:</strong> <span id="hiragana"></span></span>
+        <span id="romajiRow"><strong>Romaji:</strong> <span id="romaji"></span></span>
         <span id="polishRow"><strong>Znaczenie po polsku:</strong> <span id="polish"></span></span>
+        <span id="categoryRow"><strong>Kategoria:</strong> <span id="category"></span></span>
       </div>
     </div>
 
-    <div class="buttons" style="flex-direction: column; gap: 14px; align-items: center;">
-      <div class="main-buttons" style="display:flex; gap:12px;">
-        <button
-          id="showAnswerBtn"
-          style="padding:12px 20px; font-size:1rem; background:#2563eb; color:white;">
-          Pokaż odpowiedź + dźwięk
-        </button>
+    <!-- Actions Panel -->
+    <div class="actions-panel">
+      <div class="primary-actions">
+        <button id="showAnswerBtn" class="btn btn-primary">📖 Pokaż odpowiedź</button>
       </div>
 
-      <div class="judge-buttons" style="display:flex; gap:12px; margin-top:4px;">
-        <button
-          id="knowBtn"
-          style="padding:12px 22px; font-size:1rem; background:#16a34a; color:white;">
-          Umiem ✔️
-        </button>
-        <button
-          id="dontKnowBtn"
-          style="padding:12px 22px; font-size:1rem; background:#dc2626; color:white;">
-          Nie umiem ❌
-        </button>
+      <div class="secondary-actions">
+        <button id="repeatQuestionBtn" class="btn btn-secondary">🔄 Powtórz pytanie</button>
+        <button id="repeatAnswerBtn" class="btn btn-secondary">🔊 Powtórz odpowiedź</button>
       </div>
 
-      <div class="secondary-buttons" style="display:flex; gap:12px; margin-top:10px;">
-        <button id="repeatQuestionBtn" class="secondary">Powtórz pytanie</button>
-        <button id="repeatAnswerBtn" class="secondary">Powtórz odpowiedź</button>
+      <div class="primary-actions">
+        <button id="knowBtn" class="btn btn-success">✅ Umiem</button>
+        <button id="dontKnowBtn" class="btn btn-danger">❌ Nie umiem</button>
+      </div>
+
+      <div class="reset-section">
+        <button id="resetBtn" class="btn btn-reset">🔄 Rozpocznij od nowa</button>
       </div>
     </div>
 
-    <p id="statsInfo" class="progress"></p>
-
-    <div class="bottom-actions">
-      <button id="resetBtn" class="secondary">Rozpocznij od nowa</button>
+    <!-- Stats Panel -->
+    <div class="stats-panel">
+      <div class="stats-content" id="statsInfo">Ładowanie...</div>
     </div>
   </div>
 
   <script src="vocabulary-jp-basic.js"></script>
-  <script src="app.js"></script>
-</body>
-</html>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Mode Selection -->
-            <div class="mode-selection" id="mode-selection">
-                <h2>Choose Learning Mode</h2>
-                <div class="mode-buttons">
-                    <button class="mode-btn" data-mode="flashcards">
-                        <span class="mode-icon">📚</span>
-                        <span class="mode-title">Flashcards</span>
-                        <span class="mode-desc">Learn with interactive cards</span>
-                    </button>
-                    <button class="mode-btn" data-mode="quiz">
-                        <span class="mode-icon">🎯</span>
-                        <span class="mode-title">Quiz Mode</span>
-                        <span class="mode-desc">Test your knowledge</span>
-                    </button>
-                    <button class="mode-btn" data-mode="listening">
-                        <span class="mode-icon">🎧</span>
-                        <span class="mode-title">Listening</span>
-                        <span class="mode-desc">Practice pronunciation</span>
-                    </button>
-                    <button class="mode-btn" data-mode="writing">
-                        <span class="mode-icon">✍️</span>
-                        <span class="mode-title">Writing</span>
-                        <span class="mode-desc">Practice writing</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Flashcard Mode -->
-            <div class="flashcard-container hidden" id="flashcard-container">
-                <div class="flashcard-header">
-                    <button class="back-btn" id="back-to-menu">← Back to Menu</button>
-                    <div class="card-counter">
-                        <span id="current-card">1</span> / <span id="total-cards">1000</span>
-                    </div>
-                </div>
-
-                <div class="flashcard" id="flashcard">
-                    <div class="card-content">
-                        <div class="japanese-text">
-                            <div class="kanji" id="kanji">漢字</div>
-                            <div class="hiragana" id="hiragana">ひらがな</div>
-                            <div class="romaji" id="romaji">romaji</div>
-                        </div>
-                        <div class="english-text hidden" id="english-text">
-                            <div class="translation" id="translation">English Translation</div>
-                            <div class="example" id="example">Example sentence</div>
-                        </div>
-                    </div>
-                    <div class="card-actions">
-                        <button class="flip-btn" id="flip-btn">Show Answer</button>
-                    </div>
-                </div>
-
-                <div class="flashcard-controls">
-                    <button class="control-btn difficulty-btn" id="hard-btn">
-                        <span>😰</span>
-                        <span>Hard</span>
-                    </button>
-                    <button class="control-btn difficulty-btn" id="good-btn">
-                        <span>👍</span>
-                        <span>Good</span>
-                    </button>
-                    <button class="control-btn difficulty-btn" id="easy-btn">
-                        <span>😎</span>
-                        <span>Easy</span>
-                    </button>
-                </div>
-
-                <div class="navigation-controls">
-                    <button class="nav-btn" id="prev-btn">← Previous</button>
-                    <button class="shuffle-btn" id="shuffle-btn">🔀 Shuffle</button>
-                    <button class="nav-btn" id="next-btn">Next →</button>
-                </div>
-            </div>
-
-            <!-- Quiz Mode -->
-            <div class="quiz-container hidden" id="quiz-container">
-                <div class="quiz-header">
-                    <button class="back-btn" id="quiz-back-btn">← Back to Menu</button>
-                    <div class="quiz-progress">
-                        Question <span id="quiz-current">1</span> / <span id="quiz-total">10</span>
-                    </div>
-                    <div class="quiz-score">
-                        Score: <span id="quiz-score">0</span>
-                    </div>
-                </div>
-
-                <div class="quiz-question">
-                    <div class="question-text" id="question-text">What does this mean?</div>
-                    <div class="question-word">
-                        <div class="japanese-display" id="quiz-japanese">日本語</div>
-                    </div>
-                </div>
-
-                <div class="quiz-options" id="quiz-options">
-                    <!-- Options will be generated dynamically -->
-                </div>
-
-                <div class="quiz-feedback hidden" id="quiz-feedback">
-                    <div class="feedback-text" id="feedback-text"></div>
-                    <button class="next-question-btn" id="next-question-btn">Next Question</button>
-                </div>
-            </div>
-
-            <!-- Results Screen -->
-            <div class="results-container hidden" id="results-container">
-                <div class="results-content">
-                    <h2>Quiz Complete!</h2>
-                    <div class="final-score">
-                        <div class="score-circle">
-                            <span id="final-score">0</span>
-                            <small>/ 10</small>
-                        </div>
-                    </div>
-                    <div class="results-stats">
-                        <div class="result-stat">
-                            <span class="stat-number" id="correct-answers">0</span>
-                            <span class="stat-label">Correct</span>
-                        </div>
-                        <div class="result-stat">
-                            <span class="stat-number" id="wrong-answers">0</span>
-                            <span class="stat-label">Wrong</span>
-                        </div>
-                        <div class="result-stat">
-                            <span class="stat-number" id="accuracy">0%</span>
-                            <span class="stat-label">Accuracy</span>
-                        </div>
-                    </div>
-                    <div class="results-actions">
-                        <button class="action-btn" id="retry-quiz">Try Again</button>
-                        <button class="action-btn" id="back-to-main">Back to Menu</button>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- Settings Panel -->
-        <div class="settings-panel hidden" id="settings-panel">
-            <div class="settings-content">
-                <h3>Settings</h3>
-                <div class="setting-group">
-                    <label>Show Kanji</label>
-                    <input type="checkbox" id="show-kanji" checked>
-                </div>
-                <div class="setting-group">
-                    <label>Show Hiragana</label>
-                    <input type="checkbox" id="show-hiragana" checked>
-                </div>
-                <div class="setting-group">
-                    <label>Show Romaji</label>
-                    <input type="checkbox" id="show-romaji" checked>
-                </div>
-                <div class="setting-group">
-                    <label>Auto-play Audio</label>
-                    <input type="checkbox" id="auto-audio">
-                </div>
-                <button class="close-settings" id="close-settings">Close</button>
-            </div>
-        </div>
-
-        <!-- Settings Button -->
-        <button class="settings-btn" id="settings-btn">⚙️</button>
-    </div>
-
-    <script src="vocabulary-data.js"></script>
-    <script src="app.js"></script>
+  <script src="app-enhanced.js"></script>
 </body>
 </html>
